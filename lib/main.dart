@@ -1,6 +1,8 @@
+import 'package:todo/Service/Auth_Service.dart';
+import 'package:todo/pages/HomePage.dart';
+import 'package:todo/pages/SignUpPage.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,33 +18,29 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  firebase_auth.FirebaseAuth firebaseAuth = firebase_auth.FirebaseAuth.instance;
+  AuthClass authClass = AuthClass();
+  Widget currentPage = SignUpPage();
 
-  void signup() async {
-    try {
-      await firebaseAuth.createUserWithEmailAndPassword(
-          email: 'omar1@gmail.com', password: '123456');
-    } catch (e) {
-      print(e);
-    }
+  @override
+  void initState() {
+    super.initState();
+    // authClass.signOut();
+    checkLogin();
+  }
+
+  checkLogin() async {
+    String? tokne = await authClass.getToken();
+    print("tokne");
+    if (tokne != null)
+      setState(() {
+        currentPage = HomePage();
+      });
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text("firebasse"),
-        ),
-        body: Center(
-          child: ElevatedButton(
-            onPressed: () {
-              signup();
-            },
-            child: Text('signuo'),
-          ),
-        ),
-      ),
+      home: currentPage,
     );
   }
 }
