@@ -146,8 +146,8 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
   Widget otpField() {
     return OTPTextField(
       length: 6,
-      width: MediaQuery.of(context).size.width - 34,
-      fieldWidth: 58,
+      width: MediaQuery.of(context).size.width - 5,
+      fieldWidth: 50,
       otpFieldStyle: OtpFieldStyle(
         backgroundColor: Color(0xff1d1d1d),
         borderColor: Colors.white,
@@ -185,7 +185,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
           prefixIcon: Padding(
             padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 15),
             child: Text(
-              " (+91) ",
+              " (+62) ",
               style: TextStyle(color: Colors.white, fontSize: 17),
             ),
           ),
@@ -199,7 +199,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
                       buttonName = "Resend";
                     });
                     await authClass.verifyPhoneNumber(
-                        "+91 ${phoneController.text}", context, setData);
+                        "+62 ${phoneController.text}", context, setData);
                   },
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
