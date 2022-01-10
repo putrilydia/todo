@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo/Custom/TodoCard.dart';
 import 'package:todo/Service/Auth_Service.dart';
-import 'package:todo/main.dart';
 import 'package:flutter/material.dart';
 import 'package:todo/pages/AddTodo.dart';
+import 'package:intl/intl.dart';
+import 'package:todo/pages/ViewPage.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -13,6 +15,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   AuthClass authClass = AuthClass();
+
+  final Stream<QuerySnapshot> _stream =
+      FirebaseFirestore.instance.collection("Todo").snapshots();
+
+  String getToday() {
+    DateTime today = DateTime.now();
+    String formattedDate = DateFormat('EEEE, d MMM, ' 'yyyy').format(today);
+    return formattedDate;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,11 +53,11 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.only(left: 22),
               child: Text(
-                "Monday 21",
+                getToday(),
                 style: TextStyle(
                   fontSize: 33,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: Colors.purpleAccent,
                 ),
               ),
             ),
@@ -102,63 +114,88 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          padding: EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
-          child: Column(
-            children: [
-              TodoCard(
-                title: "Wake up Bro",
-                check: true,
-                iconBgColor: Colors.white,
-                iconColor: Colors.red,
-                iconData: Icons.alarm,
-                time: "10 AM",
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              TodoCard(
-                title: "Let's do Gym",
-                check: false,
-                iconBgColor: Color(0xff2cc8d9),
-                iconColor: Colors.white,
-                iconData: Icons.run_circle,
-                time: "11 AM",
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              TodoCard(
-                title: "Buy Some Food",
-                check: false,
-                iconBgColor: Color(0xfff19733),
-                iconColor: Colors.white,
-                iconData: Icons.local_grocery_store,
-                time: "12 AM",
-              ),
-              SizedBox(
-                width: 10,
-              ),
-              TodoCard(
-                title: "Testig somthing",
-                check: false,
-                iconBgColor: Color(0xffd3c2b9),
-                iconColor: Colors.white,
-                iconData: Icons.audiotrack,
-                time: "01 PM",
-              ),
-              SizedBox(
-                width: 10,
-              ),
-            ],
-          ),
-        ),
+      body: Padding(
+        padding: const EdgeInsets.all(12),
+        child: StreamBuilder(
+            stream: _stream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    CircularProgressIndicator(),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Text(
+                      "You don't have Todos yet\nOr maybe there is an error :(",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    )
+                  ],
+                ));
+              }
+              return ListView.builder(
+                  itemCount: (snapshot.data! as QuerySnapshot).docs.length,
+                  itemBuilder: (context, index) {
+                    IconData iconData;
+                    Color iconColor;
+                    Map<String, dynamic> data =
+                        (snapshot.data! as QuerySnapshot).docs[index].data()
+                            as Map<String, dynamic>;
+                    switch (data["category"]) {
+                      case "Work":
+                        iconData = Icons.work;
+                        iconColor = Colors.red;
+                        break;
+                      case "Workout":
+                        iconData = Icons.run_circle_outlined;
+                        iconColor = Colors.teal;
+                        break;
+                      case "Food":
+                        iconData = Icons.local_grocery_store;
+                        iconColor = Colors.blue;
+                        break;
+                      case "Design":
+                        iconData = Icons.design_services;
+                        iconColor = Colors.purple;
+                        break;
+                      case "Run":
+                        iconData = Icons.run_circle_rounded;
+                        iconColor = Colors.black;
+                        break;
+                      default:
+                        iconData = Icons.work;
+                        iconColor = Colors.red;
+                    }
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (builder) => ViewPage(
+                                      data: data,
+                                      id: (snapshot.data! as QuerySnapshot)
+                                          .docs[index]
+                                          .id,
+                                    )));
+                      },
+                      child: TodoCard(
+                        title: data["title"] ?? "NO TITLE",
+                        check: true,
+                        iconBgColor: Colors.white,
+                        iconColor: iconColor,
+                        iconData: iconData,
+                        time: "10 AM",
+                      ),
+                    );
+                  });
+            }),
       ),
     );
   }

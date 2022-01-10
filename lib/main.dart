@@ -1,5 +1,4 @@
 import 'package:todo/Service/Auth_Service.dart';
-import 'package:todo/pages/AddTodo.dart';
 import 'package:todo/pages/HomePage.dart';
 import 'package:todo/pages/SignUpPage.dart';
 import 'package:firebase_core/firebase_core.dart';
