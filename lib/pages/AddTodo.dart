@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +10,10 @@ class AddTodoPage extends StatefulWidget {
 }
 
 class _AddTodoPageState extends State<AddTodoPage> {
+  TextEditingController _titleController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
+  String type = "";
+  String category = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +33,9 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 height: 30,
               ),
               IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
                   icon: const Icon(
                     CupertinoIcons.arrow_left,
                     color: Colors.white,
@@ -76,11 +83,11 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     ),
                     Row(
                       children: [
-                        chipData("important", 0xff2664fa),
+                        chipDataTask("important", 0xff2664fa),
                         const SizedBox(
                           width: 20,
                         ),
-                        chipData("Planned", 0xff2bc8d9),
+                        chipDataTask("Planned", 0xff2bc8d9),
                       ],
                     ),
                     const SizedBox(
@@ -101,23 +108,23 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     Wrap(
                       runSpacing: 10,
                       children: [
-                        chipData("Food", 0xffff6d6e),
+                        chipDataCategory("Food", 0xffff6d6e),
                         const SizedBox(
                           width: 20,
                         ),
-                        chipData("Workout", 0xfff29732),
+                        chipDataCategory("Workout", 0xfff29732),
                         const SizedBox(
                           width: 20,
                         ),
-                        chipData("Work", 0xff6557ff),
+                        chipDataCategory("Work", 0xff6557ff),
                         const SizedBox(
                           width: 20,
                         ),
-                        chipData("Design", 0xff234ebd),
+                        chipDataCategory("Design", 0xff234ebd),
                         const SizedBox(
                           width: 20,
                         ),
-                        chipData("Run", 0xff2bc8d9),
+                        chipDataCategory("Run", 0xff2bc8d9),
                       ],
                     ),
                     const SizedBox(
@@ -138,21 +145,48 @@ class _AddTodoPageState extends State<AddTodoPage> {
   }
 
   Widget button() {
-    return Container(
-      height: 56,
-      width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(colors: [
-          Color(0xff8a32f1),
-          Color(0xffad32f9),
-        ]),
-      ),
-      child: Center(
-        child: Text(
-          "Add Todo",
-          style: TextStyle(
-              color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+    return InkWell(
+      onTap: () {
+        if (_titleController.text == "") {
+          final snackbar = SnackBar(content: Text("Add Title!"));
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        } else if (type == "") {
+          final snackbar = SnackBar(content: Text("Select Type!"));
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        } else if (_descriptionController.text == "") {
+          final snackbar = SnackBar(content: Text("Add Description!"));
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        } else if (category == "") {
+          final snackbar = SnackBar(content: Text("Select Category!"));
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+        } else {
+          final snackbar = SnackBar(content: Text("Successfully Made!"));
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+          FirebaseFirestore.instance.collection("Todo").add({
+            "title": _titleController.text,
+            "task": type,
+            "description": _descriptionController.text,
+            "category": category,
+          });
+          Navigator.pop(context);
+        }
+      },
+      child: Container(
+        height: 56,
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(colors: [
+            Color(0xff8a32f1),
+            Color(0xffad32f9),
+          ]),
+        ),
+        child: Center(
+          child: Text(
+            "Add Todo",
+            style: TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     );
@@ -165,6 +199,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       decoration: BoxDecoration(
           color: Color(0xff2a2e3d), borderRadius: BorderRadius.circular(15)),
       child: TextFormField(
+        controller: _descriptionController,
         style: TextStyle(color: Colors.grey, fontSize: 17),
         maxLines: null,
         decoration: InputDecoration(
@@ -176,16 +211,47 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
   }
 
-  Widget chipData(String label, int color) {
-    return Chip(
-      backgroundColor: Color(color),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      label: Text(
-        label,
-        style: TextStyle(
-            color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+  Widget chipDataTask(String label, int color) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          type = label;
+        });
+      },
+      child: Chip(
+        backgroundColor: type == label ? Colors.white : Color(color),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        label: Text(
+          label,
+          style: TextStyle(
+              color: type == label ? Colors.black : Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w600),
+        ),
+        labelPadding: EdgeInsets.symmetric(horizontal: 17, vertical: 3.8),
       ),
-      labelPadding: EdgeInsets.symmetric(horizontal: 17, vertical: 3.8),
+    );
+  }
+
+  Widget chipDataCategory(String label, int color) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          category = label;
+        });
+      },
+      child: Chip(
+        backgroundColor: category == label ? Colors.white : Color(color),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        label: Text(
+          label,
+          style: TextStyle(
+              color: category == label ? Colors.black : Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.w600),
+        ),
+        labelPadding: EdgeInsets.symmetric(horizontal: 17, vertical: 3.8),
+      ),
     );
   }
 
@@ -196,6 +262,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       decoration: BoxDecoration(
           color: Color(0xff2a2e3d), borderRadius: BorderRadius.circular(15)),
       child: TextFormField(
+        controller: _titleController,
         style: TextStyle(color: Colors.grey, fontSize: 17),
         decoration: InputDecoration(
             border: InputBorder.none,
