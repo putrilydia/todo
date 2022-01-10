@@ -58,17 +58,40 @@ class _ViewPageState extends State<ViewPage> {
                         color: Colors.white,
                         size: 28,
                       )),
-                  IconButton(
-                      onPressed: () {
-                        setState(() {
-                          edit = !edit;
-                        });
-                      },
-                      icon: Icon(
-                        Icons.edit,
-                        color: edit ? Colors.green : Colors.white,
-                        size: 28,
-                      )),
+                  Row(
+                    children: [
+                      IconButton(
+                          onPressed: () {
+                            final snackbar = SnackBar(
+                                content: Text("Successfully Deleted!"));
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(snackbar);
+                            FirebaseFirestore.instance
+                                .collection("Todo")
+                                .doc(widget.id)
+                                .delete()
+                                .then((value) {
+                              Navigator.pop(context);
+                            });
+                          },
+                          icon: Icon(
+                            Icons.delete,
+                            color: Colors.red[400],
+                            size: 30,
+                          )),
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              edit = !edit;
+                            });
+                          },
+                          icon: Icon(
+                            Icons.edit,
+                            color: edit ? Colors.green : Colors.white,
+                            size: 28,
+                          )),
+                    ],
+                  ),
                 ],
               ),
               Padding(
