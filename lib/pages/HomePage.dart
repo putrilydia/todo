@@ -6,6 +6,8 @@ import 'package:todo/pages/AddTodo.dart';
 import 'package:intl/intl.dart';
 import 'package:todo/pages/ViewPage.dart';
 
+import '../main.dart';
+
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
 
@@ -15,6 +17,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   AuthClass authClass = AuthClass();
+
+  List<Select> selected = [];
 
   final Stream<QuerySnapshot> _stream =
       FirebaseFirestore.instance.collection("Todo").snapshots();
@@ -51,14 +55,31 @@ class _HomePageState extends State<HomePage> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Padding(
-              padding: const EdgeInsets.only(left: 22),
-              child: Text(
-                getToday(),
-                style: TextStyle(
-                  fontSize: 33,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.purpleAccent,
-                ),
+              padding: const EdgeInsets.only(top: 10, left: 22),
+              child: Row(
+                children: [
+                  Text(
+                    getToday(),
+                    style: TextStyle(
+                      fontSize: 33,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.purpleAccent,
+                    ),
+                  ),
+                  IconButton(
+                      onPressed: () {
+                        var instance =
+                            FirebaseFirestore.instance.collection("Todo");
+                        for (var i = 0; i < selected.length; i++) {
+                          instance.doc(selected[i].id).delete();
+                        }
+                      },
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.red[400],
+                        size: 30,
+                      )),
+                ],
               ),
             ),
           ),
@@ -104,11 +125,19 @@ class _HomePageState extends State<HomePage> {
             ),
             BottomNavigationBarItem(
               backgroundColor: Colors.black87,
-              icon: Icon(
-                Icons.settings,
-                size: 32,
-                color: Colors.white,
-              ),
+              icon: IconButton(
+                  icon: Icon(
+                    Icons.logout,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                  onPressed: () async {
+                    await authClass.signOut();
+                    Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (builder) => MyApp()),
+                        (route) => false);
+                  }),
               title: Container(),
             ),
           ],
@@ -173,6 +202,9 @@ class _HomePageState extends State<HomePage> {
                         iconData = Icons.work;
                         iconColor = Colors.red;
                     }
+                    selected.add(Select(
+                        id: (snapshot.data! as QuerySnapshot).docs[index].id,
+                        checkValue: false));
                     return InkWell(
                       onTap: () {
                         Navigator.push(
@@ -185,27 +217,43 @@ class _HomePageState extends State<HomePage> {
                                           .id,
                                     )));
                       },
-                      child: TodoCard(
-                        title: data["title"] ?? "NO TITLE",
-                        check: true,
-                        iconBgColor: Colors.white,
-                        iconColor: iconColor,
-                        iconData: iconData,
-                        time: "10 AM",
-                      ),
+                      child: data.isNotEmpty
+                          ? TodoCard(
+                              title: data["title"] ?? "NO TITLE",
+                              check: selected[index].checkValue,
+                              iconBgColor: Colors.white,
+                              iconColor: iconColor,
+                              iconData: iconData,
+                              index: index,
+                              onChange: onChange,
+                              time: "10 AM",
+                            )
+                          : Center(
+                              child: Text(
+                                "No data",
+                                style: TextStyle(
+                                  fontSize: 34,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                     );
                   });
             }),
       ),
     );
   }
+
+  void onChange(int index) {
+    setState(() {
+      selected[index].checkValue = !selected[index].checkValue;
+    });
+  }
 }
-// IconButton(
-//               icon: Icon(Icons.logout),
-//               onPressed: () async {
-//                 await authClass.signOut();
-//                 Navigator.pushAndRemoveUntil(
-//                     context,
-//                     MaterialPageRoute(builder: (builder) => MyApp()),
-//                     (route) => false);
-//               }),
+
+class Select {
+  String id;
+  bool checkValue = false;
+  Select({required this.id, required this.checkValue});
+}
