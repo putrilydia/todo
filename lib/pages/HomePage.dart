@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     getToday(),
                     style: TextStyle(
-                      fontSize: 33,
+                      fontSize: 22,
                       fontWeight: FontWeight.w600,
                       color: Colors.purpleAccent,
                     ),
@@ -226,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                               iconData: iconData,
                               index: index,
                               onChange: onChange,
-                              time: "10 AM",
+                              time: data["task"],
                             )
                           : Center(
                               child: Text(

@@ -89,7 +89,9 @@ class TodoCard extends StatelessWidget {
                       time,
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white,
+                        color: time == "important"
+                            ? Colors.blueAccent
+                            : Colors.white,
                       ),
                     ),
                     SizedBox(
